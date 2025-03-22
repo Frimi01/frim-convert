@@ -1,6 +1,8 @@
 # File Converter & Trimmer
 
-A lightweight program to convert and modify files.
+A lightweight gui app to convert and modify files. 
+
+Currently mostly a small lightweight wrapper for FFmpeg to simplify the process of using it and increase productivity. 
 
 
 ## Features
