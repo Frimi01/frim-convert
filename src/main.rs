@@ -20,6 +20,7 @@ struct TrimApp {
     start_time: String,
     end_time: String,
     video_length: String,
+    is_video: bool,
 }
 
 impl eframe::App for TrimApp {
@@ -38,14 +39,18 @@ impl eframe::App for TrimApp {
             ui.label("Output File:");
             ui.text_edit_singleline(&mut self.output_path);
 
-            ui.label("Start Time (HH:MM:SS or seconds):");
-            ui.text_edit_singleline(&mut self.start_time);
+            ui.checkbox(&mut self.is_video, "Trim video file");
 
-            ui.label("End Time (HH:MM:SS or seconds):");
-            ui.text_edit_singleline(&mut self.end_time);
+            if self.is_video == true {
+                ui.label("Start Time (HH:MM:SS or seconds):");
+                ui.text_edit_singleline(&mut self.start_time);
 
-            if ui.button("Trim Video").clicked() {
-                self.trim_video();
+                ui.label("End Time (HH:MM:SS or seconds):");
+                ui.text_edit_singleline(&mut self.end_time);
+            }
+
+            if ui.button("Convert and Modify").clicked() {
+                self.convert();
             }
         });
     }
@@ -84,12 +89,19 @@ impl TrimApp {
         "0".to_string() // Fallback if extraction fails
     }
 
-    fn trim_video(&self) {
+    fn convert(&self) {
         if self.input_path.is_empty() || self.output_path.is_empty() {
             println!("Error: Input and output paths cannot be empty.");
             return;
         }
+        if self.is_video == true {
+            self.convert_video();
+        } else {
+            self.convert_image();
+        }
+    }
 
+    fn convert_video(&self) {
         let start = if self.start_time.is_empty() {
             "0".to_string()
         } else {
@@ -118,7 +130,24 @@ impl TrimApp {
         match ffmpeg_cmd {
             Ok(output) => {
                 if output.status.success() {
-                    println!("Trimming successful!");
+                    println!("Conversion successful!");
+                } else {
+                    println!("Error: {}", String::from_utf8_lossy(&output.stderr));
+                }
+            }
+            Err(e) => println!("Failed to execute FFmpeg: {}", e),
+        }
+    }
+
+    fn convert_image(&self) {
+        let ffmpeg_cmd = Command::new("ffmpeg")
+            .args(["-i", &self.input_path, &self.output_path])
+            .output();
+
+        match ffmpeg_cmd {
+            Ok(output) => {
+                if output.status.success() {
+                    println!("Trim successful!");
                 } else {
                     println!("Error: {}", String::from_utf8_lossy(&output.stderr));
                 }
