@@ -20,7 +20,7 @@ struct TrimApp {
     start_time: String,
     end_time: String,
     video_length: String,
-    is_video: bool,
+    is_trimming: bool,
 }
 
 impl eframe::App for TrimApp {
@@ -39,9 +39,9 @@ impl eframe::App for TrimApp {
             ui.label("Output File:");
             ui.text_edit_singleline(&mut self.output_path);
 
-            ui.checkbox(&mut self.is_video, "Trim video file");
+            ui.checkbox(&mut self.is_trimming, "Trim video file");
 
-            if self.is_video == true {
+            if self.is_trimming == true {
                 ui.label("Start Time (HH:MM:SS or seconds):");
                 ui.text_edit_singleline(&mut self.start_time);
 
@@ -94,14 +94,14 @@ impl TrimApp {
             println!("Error: Input and output paths cannot be empty.");
             return;
         }
-        if self.is_video == true {
-            self.convert_video();
+        if self.is_trimming == true {
+            self.convert_video_trim();
         } else {
-            self.convert_image();
+            self.convert_default();
         }
     }
 
-    fn convert_video(&self) {
+    fn convert_video_trim(&self) {
         let start = if self.start_time.is_empty() {
             "0".to_string()
         } else {
@@ -130,7 +130,7 @@ impl TrimApp {
         match ffmpeg_cmd {
             Ok(output) => {
                 if output.status.success() {
-                    println!("Conversion successful!");
+                    println!("Trim successful!");
                 } else {
                     println!("Error: {}", String::from_utf8_lossy(&output.stderr));
                 }
@@ -139,7 +139,7 @@ impl TrimApp {
         }
     }
 
-    fn convert_image(&self) {
+    fn convert_default(&self) {
         let ffmpeg_cmd = Command::new("ffmpeg")
             .args(["-i", &self.input_path, &self.output_path])
             .output();
@@ -147,7 +147,7 @@ impl TrimApp {
         match ffmpeg_cmd {
             Ok(output) => {
                 if output.status.success() {
-                    println!("Trim successful!");
+                    println!("Convertion successful!");
                 } else {
                     println!("Error: {}", String::from_utf8_lossy(&output.stderr));
                 }
